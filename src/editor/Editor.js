@@ -23,24 +23,35 @@ const defaultInit = {
 };
 
 export default function Editor(props) {
-	const { init = defaultInit, id = uuid('tiny'), value = '', readonly = false, onChange } = props;
+	const { init = defaultInit, value = '', readonly = false, onChange } = props;
 	const ref_element = React.useRef();
 	const ref_editor = React.useRef();
+	const ref_value = React.useRef(value || '');
+	const ref_id = React.useRef(uuid('tiny'));
 
-	const initEditor = (initEvent, editor) => {
-		const value = typeof value === 'string' ? value : '';
-		editor.setContent(value);
-		editor.setMode(readonly ? 'readonly' : 'design');
+	const initEditorValue = () => {
+		const editor = ref_editor.current;
+		const defaultValue = typeof value === 'string' ? value : '';
+		console.log('init value', defaultValue);
+		editor.setContent(defaultValue);
+		ref_value.current = defaultValue;
+	};
 
+	const initEditorEvent = () => {
+		const editor = ref_editor.current;
 		if (isFunction(onChange)) {
-			editor.on('change', (e) => {
+			editor.off('change keyup setcontent');
+			editor.on('change keyup setcontent', (e) => {
 				const newContent = editor.getContent();
-				onChange(newContent);
+				if (newContent !== ref_value.current) {
+					onChange(newContent);
+					ref_value.current = newContent;
+				}
 			});
 		}
 	};
 
-	const initialise = () => {
+	const initTinymce = () => {
 		const finalInit = {
 			...init,
 			language: 'zh_CN',
@@ -51,8 +62,10 @@ export default function Editor(props) {
 			toolbar: init ? init.toolbar : '',
 			setup: (editor) => {
 				ref_editor.current = editor;
-				editor.on('init', (e) => {
-					initEditor(e, editor);
+				editor.setMode(readonly ? 'readonly' : 'design');
+				editor.on('init', () => {
+					initEditorValue();
+					initEditorEvent();
 				});
 
 				if (init && typeof init.setup === 'function') {
@@ -61,44 +74,68 @@ export default function Editor(props) {
 			},
 		};
 
-		if (isTextarea(ref_element.current)) {
-			ref_element.current.style.visibility = '';
-		}
+		// if (isTextarea(ref_element.current)) {
+		// 	ref_element.current.style.visibility = '';
+		// }
 
 		getTinymce().init(finalInit);
 		ZH_CN();
 	};
 
 	React.useEffect(() => {
-		const editor = ref_element.current;
-		if (editor == null) {
-			console.log('editor do not exists');
-			return;
+		const element = ref_element.current;
+		const editor = ref_editor.current;
+		const callback = () => {
+			if (getTinymce() !== null) {
+				console.log('unmount');
+				getTinymce().remove(ref_editor.current);
+			}
+		};
+		if (element == null) {
+			console.log('element do not exists');
+			return callback;
 		}
+
 		if (getTinymce() !== null) {
-			initialise();
-		} else if (editor && editor.ownerDocument) {
-			const doc = editor.ownerDocument;
+			console.log('init tiny');
+			initTinymce();
+			return callback;
+		}
+		if (element && element.ownerDocument) {
+			console.log('import script');
+			const doc = element.ownerDocument;
 
 			ScriptLoader.load(
 				scriptState,
 				doc,
 				'https://cdn.tiny.cloud/1/no-api-key/tinymce/5/tinymce.min.js',
-				initialise,
+				initTinymce,
 			);
 		}
 
-		return () => {
-			if (getTinymce() !== null) {
-				getTinymce().remove(editor);
-			}
-		};
-	});
+		return callback;
+	}, [init, readonly]);
+
+	React.useEffect(() => {
+		const editor = ref_editor.current;
+		if (editor != null) {
+			console.log('init editor value');
+			initEditorValue();
+		}
+	}, [value]);
+
+	React.useEffect(() => {
+		const editor = ref_editor.current;
+		if (editor != null) {
+			console.log('init editor event');
+			initEditorEvent();
+		}
+	}, [onChange]);
 
 	return React.createElement('textarea', {
 		ref: ref_element,
 		style: { visibility: 'hidden' },
-		id,
+		id: ref_id,
 	});
 }
 

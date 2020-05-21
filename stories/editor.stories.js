@@ -7,4 +7,12 @@ export default {
 	component: Editor,
 };
 
-export const Default = () => <Editor onChange={console.log} />;
+export const Default = () => {
+	const [count, setCount] = React.useState('');
+	console.log('render', count);
+	const handleChange = (v) => {
+		console.log(v);
+		setCount(v);
+	};
+	return <Editor onChange={handleChange} value={count} />;
+};
