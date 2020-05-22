@@ -2,9 +2,11 @@ import * as React from 'react';
 import * as ScriptLoader from './ScriptLoader';
 import { getTinymce } from './TinyMCE';
 import { ZH_CN } from './LocaleProvider';
+import Observer from './Observer';
 import { bindHandlers, isFunction, isTextarea, uuid } from './Utils';
 
 const scriptState = ScriptLoader.create();
+const observerManager = new Observer();
 
 const defaultInit = {
 	// mathTypeParameters: {
@@ -74,18 +76,36 @@ export default function Editor(props) {
 			},
 		};
 
-		// if (isTextarea(ref_element.current)) {
-		// 	ref_element.current.style.visibility = '';
-		// }
+		if (IntersectionObserver && ref_element.current) {
+			// IntersectionObserve 部分浏览器不支持，eslint校验错误，所以需要加这一行
+			// eslint-disable-next-line compat/compat
+			observerManager.add(
+				(changes) => {
+					changes.forEach((change) => {
+						if (change.isIntersecting && ref_element.current) {
+							console.log('observe');
+							getTinymce().init(finalInit);
+							observerManager.unobserve(ref_id.current);
+						}
+					});
+				},
+				ref_id.current,
+				ref_element.current,
+			);
+		} else {
+			getTinymce().init(finalInit);
+		}
 
-		getTinymce().init(finalInit);
+		// getTinymce().init(finalInit);
 		ZH_CN();
 	};
 
 	React.useEffect(() => {
 		const element = ref_element.current;
 		const editor = ref_editor.current;
+		observerManager.reObserve();
 		const callback = () => {
+			observerManager.clean(ref_id.current);
 			if (getTinymce() !== null) {
 				console.log('unmount');
 				getTinymce().remove(ref_editor.current);
@@ -120,7 +140,7 @@ export default function Editor(props) {
 		const editor = ref_editor.current;
 		if (editor != null) {
 			console.log('init editor value');
-			initEditorValue();
+			// initEditorValue();
 		}
 	}, [value]);
 
@@ -135,7 +155,7 @@ export default function Editor(props) {
 	return React.createElement('textarea', {
 		ref: ref_element,
 		style: { visibility: 'hidden' },
-		id: ref_id,
+		id: ref_id.current,
 	});
 }
 

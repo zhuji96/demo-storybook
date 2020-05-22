@@ -14,5 +14,35 @@ export const Default = () => {
 		console.log(v);
 		setCount(v);
 	};
-	return <Editor onChange={handleChange} value={count} />;
+	return (
+		<div>
+			<div style={{ height: '300px' }}>
+				<Editor onChange={handleChange} value={count} />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+			<div style={{ height: '300px' }}>
+				<Editor />
+			</div>
+		</div>
+	);
 };
