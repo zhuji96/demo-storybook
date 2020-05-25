@@ -1,6 +1,7 @@
 import React from 'react';
 // import { action } from '@storybook/addon-actions';
 import Editor from '../src/editor';
+import Preview from '../src/editor/Preview';
 
 export default {
 	title: 'Editor',
@@ -19,7 +20,8 @@ export const Default = () => {
 			<div style={{ height: '300px' }}>
 				<Editor onChange={handleChange} value={count} />
 			</div>
-			<div style={{ height: '300px' }}>
+			<Preview value={count} />
+			{/* <div style={{ height: '300px' }}>
 				<Editor />
 			</div>
 			<div style={{ height: '300px' }}>
@@ -42,7 +44,7 @@ export const Default = () => {
 			</div>
 			<div style={{ height: '300px' }}>
 				<Editor />
-			</div>
+			</div> */}
 		</div>
 	);
 };
