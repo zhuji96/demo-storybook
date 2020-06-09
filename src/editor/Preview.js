@@ -6,13 +6,26 @@ export default function Preview(props) {
 	const { value } = props;
 	const ref_element = React.useRef();
 	React.useEffect(() => {
-		if (ref_element.current && ref_element.current.ownerDocument.defaultView == null) {
-			injectScriptMathjax(ref_element.current.ownerDocument, () => console.log('load'));
+		console.log(
+			'aa',
+			ref_element.current.ownerDocument.defaultView,
+			ref_element.current.ownerDocument.defaultView.MathJax,
+		);
+		if (
+			ref_element.current != null &&
+			ref_element.current.ownerDocument.defaultView != null &&
+			ref_element.current.ownerDocument.defaultView.MathJax == null
+		) {
+			injectScriptMathjax(ref_element.current.ownerDocument, () => {
+				console.log('load');
+			});
 		} else {
+			console.log('update');
+			ref_element.current.innerHTML = value;
 			MathJax.Hub.Queue(['Typeset', MathJax.Hub, ref_element.current]);
 		}
-	});
-	return <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(value || '') }} ref={ref_element} />;
+	}, [value]);
+	return <div ref={ref_element} />;
 }
 
 function sanitizeHTML(str) {

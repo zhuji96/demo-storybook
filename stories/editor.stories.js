@@ -17,9 +17,7 @@ export const Default = () => {
 	};
 	return (
 		<div>
-			<div style={{ height: '300px' }}>
-				<Editor onChange={handleChange} value={count} />
-			</div>
+			<Editor onChange={handleChange} value={count} />
 			<Preview value={count} />
 			{/* <div style={{ height: '300px' }}>
 				<Editor />
